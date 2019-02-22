@@ -5,9 +5,9 @@ export class EventsGateway {
 
   @WebSocketServer() server;
 
-  @SubscribeMessage('phoneMessage')
+  @SubscribeMessage('phoneMessages')
   handleMessage(client: any, payload: any): void {
-    this.server.emit('phoneMessage', payload);
+    this.server.emit('phoneMessages', payload);
   }
 
 }
