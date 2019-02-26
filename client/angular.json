@@ -29,7 +29,12 @@
             "styles": [
               "src/styles.scss"
             ],
-            "scripts": [],
+            "scripts": [
+              "node_modules/three/build/three.min.js",
+              "node_modules/three/examples/js/loaders/ColladaLoader.js",
+              "node_modules/three/examples/js/controls/DeviceOrientationControls.js",
+              "node_modules/three/examples/js/libs/stats.min.js"
+            ],
             "es5BrowserSupport": true
           },
           "configurations": {

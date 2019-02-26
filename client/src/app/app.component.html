@@ -1,3 +1,6 @@
-<div class="event">
+<div
+  class="event"
+  *ngIf="isMobile"
+>
   {{ data | json }}
 </div>

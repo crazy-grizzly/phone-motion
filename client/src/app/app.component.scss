@@ -1,11 +1,11 @@
 :host {
-  height: 100vh;
-  width: 100vw;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
 
-  //.event {
-  //
-  //}
+  .event {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+    align-items: center;
+    justify-content: center;
+  }
 }

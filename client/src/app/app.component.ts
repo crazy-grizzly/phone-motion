@@ -1,11 +1,12 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 
 import { DeviceDetectorService } from 'ngx-device-detector';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { fromEvent, merge, of, Subject } from 'rxjs';
+import { takeUntil, withLatestFrom } from 'rxjs/operators';
 
-import { SocketService } from '../../services/socket.service';
-import { DeviceOrientationData } from '../../interfaces/device-orientation-data.interface';
+import { PhoneMotionScene } from './three/phone-motion-scene';
+import { PhoneMotionData } from '../interfaces/phone-motion-data.interface';
+import { SocketService } from '../services/socket.service';
 
 @Component({
   selector: 'app-root',
@@ -16,11 +17,15 @@ export class AppComponent implements OnInit, OnDestroy {
 
   private destroyedSubject = new Subject<void>();
 
-  data: DeviceOrientationData;
+  data: PhoneMotionData;
+
+  isMobile: boolean;
 
   constructor(
     private ss: SocketService,
-    private dds: DeviceDetectorService
+    private dds: DeviceDetectorService,
+    private cdr: ChangeDetectorRef,
+    private scene: PhoneMotionScene
   ) {
     this.ss.init();
 
@@ -41,34 +46,53 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (this.dds.isMobile() || this.dds.isTablet()) {
-      window.addEventListener(
-        'deviceorientation',
-        event => {
-          console.log('event', event);
+      this.isMobile = true;
 
-          const data: DeviceOrientationData = {
-            alpha: event.alpha,
-              beta: event.beta,
-            gamma: event.gamma,
+      fromEvent(window, 'deviceorientation')
+        .pipe(
+          withLatestFrom(
+            merge(
+              of(null),
+              fromEvent(window, 'orientationchange')
+            )
+          ),
+          takeUntil(this.destroyedSubject)
+        )
+        .subscribe( (events: [DeviceOrientationEvent, Event]) => {
+          const [
+            deviceOrientationEvent,
+            orientationChangeEvent
+          ] = events;
+
+          const data: PhoneMotionData = {
+            alpha: deviceOrientationEvent.alpha,
+            beta: deviceOrientationEvent.beta,
+            gamma: deviceOrientationEvent.gamma,
+            orientationAngle: (window.screen.orientation && window.screen.orientation.angle) || 0,
           };
 
           this.ss.emit(
-            'phoneMessage',
+            'phoneMessages',
             data
           );
 
           this.data = data;
-        }
-      );
+          this.cdr.markForCheck();
+        });
     }
 
     if (this.dds.isDesktop()) {
+      this.isMobile = false;
+
+      this.scene.init();
+
       this.ss
-        .onEvent('phoneMessage')
+        .onEvent('phoneMessages')
         .pipe(takeUntil(this.destroyedSubject))
-        .subscribe(event => {
-          console.log('event', event);
-          this.data = event;
+        .subscribe((data: PhoneMotionData) => {
+          this.data = data;
+
+          this.scene.rotatePhone(data);
         });
     }
   }

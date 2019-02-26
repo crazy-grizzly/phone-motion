@@ -3,6 +3,8 @@ import { NgModule } from '@angular/core';
 
 import { AppComponent } from './app.component';
 import { DeviceDetectorModule } from 'ngx-device-detector';
+import { PhoneMotionScene } from './three/phone-motion-scene';
+import { ThreeProvider } from './lib.providers';
 
 @NgModule({
   declarations: [
@@ -12,7 +14,10 @@ import { DeviceDetectorModule } from 'ngx-device-detector';
     BrowserModule,
     DeviceDetectorModule.forRoot()
   ],
-  providers: [],
+  providers: [
+    ThreeProvider,
+    PhoneMotionScene
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
